@@ -1,0 +1,256 @@
+-- [[ +1 OP NINJA - KEMALU HUB STYLE GUI (V8 - INTEGRATED TRAIN) ]]
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+
+local Player = game:GetService("Players").LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+ScreenGui.Name = "KemaluHubOPNinjaV8"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+-- เธซเธเนเธฒเธ•เนเธฒเธเธซเธฅเธฑเธเธชเนเธ•เธฅเน KemaluHub เธญเธขเธนเนเธ•เธฃเธเธเธฅเธฒเธเธซเธเนเธฒเธเธญ
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 25, 22)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -160, 0.4, -210)
+MainFrame.Size = UDim2.new(0, 320, 0, 385)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 15, 0, 10)
+TitleLabel.Size = UDim2.new(0, 200, 0, 25)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Text = "KEMALU HUB - OP NINJA" -- เน€เธเธฅเธตเนเธขเธเธเธทเนเธญเธซเธฑเธงเธเนเธญเธ•เธฒเธกเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเน€เธฃเธตเธขเธเธฃเนเธญเธขเนเธฅเนเธง
+TitleLabel.TextColor3 = Color3.fromRGB(200, 220, 210)
+TitleLabel.TextSize = 16
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local function createCategoryHeader(text, yPos)
+    local header = Instance.new("TextLabel")
+    header.Parent = MainFrame
+    header.BackgroundTransparency = 1
+    header.Position = UDim2.new(0, 15, 0, yPos)
+    header.Size = UDim2.new(1, -30, 0, 20)
+    header.Font = Enum.Font.SourceSansBold
+    header.Text = text
+    header.TextColor3 = Color3.fromRGB(75, 120, 95)
+    header.TextSize = 13
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    return header
+end
+
+local function createModernToggle(text, yPos)
+    local rowFrame = Instance.new("Frame")
+    rowFrame.Parent = MainFrame
+    rowFrame.BackgroundColor3 = Color3.fromRGB(22, 38, 32)
+    rowFrame.Position = UDim2.new(0, 15, 0, yPos)
+    rowFrame.Size = UDim2.new(1, -30, 0, 40)
+    rowFrame.BorderSizePixel = 0
+    
+    local rowCorner = Instance.new("UICorner")
+    rowCorner.CornerRadius = UDim.new(0, 6)
+    rowCorner.Parent = rowFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = rowFrame
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.Size = UDim2.new(0, 200, 1, 0)
+    label.Font = Enum.Font.SourceSansSemibold
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(180, 200, 190)
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Parent = rowFrame
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 60, 52)
+    toggleBtn.Position = UDim2.new(1, -32, 0, 11)
+    toggleBtn.Size = UDim2.new(0, 18, 0, 18)
+    toggleBtn.Text = ""
+    
+    local circleCorner = Instance.new("UICorner")
+    circleCorner.CornerRadius = UDim.new(1, 0)
+    circleCorner.Parent = toggleBtn
+    
+    return toggleBtn
+end
+
+createCategoryHeader("Misc", 45)
+local ToggleTrain = createModernToggle("Auto Train", 70)
+local ToggleFastSlash = createModernToggle("Fast Slash", 115)
+local ToggleX2Stat = createModernToggle("x2 Ninjutsu & Soul", 160)
+
+createCategoryHeader("Player", 210)
+local ToggleSpeed = createModernToggle("WalkSpeed x2", 235)
+local ToggleSafezone = createModernToggle("Create Safezone", 280)
+local ToggleInfJump = createModernToggle("Infinite Jumps", 325)
+
+-- เน€เธเธดเธ”/เธเธดเธ”เน€เธกเธเธนเธ”เนเธงเธขเธเธธเนเธก F
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+getgenv().autotrain = false
+local Status = {FastSlash = false, Speed = false, X2Stat = false, Safezone = false, InfJump = false}
+
+local safePlatform = nil
+local safePosition = Vector3.new(0, 5000, 0)
+local lastPosition = nil
+
+local function updateToggleVisual(btn, isEnabled)
+    if isEnabled then
+        btn.BackgroundColor3 = Color3.fromRGB(65, 185, 120)
+    else
+        btn.BackgroundColor3 = Color3.fromRGB(45, 60, 52)
+    end
+end
+
+-- เธเธฑเธเธเนเธเธฑเธเธ”เธถเธเนเธญเน€เธ—เธกเธเธฃเธฐเน€เธ เธ—เธ”เธฒเธเนเธฅเธฐเธเธ”เธชเธงเธดเธ
+local function train()
+    local char = Player.Character or Player.CharacterAdded:Wait()
+    local sword = char:FindFirstChildOfClass("Tool")
+    if sword then
+        sword:Activate()
+    end
+end
+
+-- 1. Auto Train
+ToggleTrain.MouseButton1Click:Connect(function()
+    getgenv().autotrain = not getgenv().autotrain
+    updateToggleVisual(ToggleTrain, getgenv().autotrain)
+    
+    if getgenv().autotrain then
+        task.spawn(function()
+            while getgenv().autotrain do
+                train()
+                task.wait(0.000001)
+            end
+        end)
+    end
+end)
+
+-- 2. Fast Slash
+ToggleFastSlash.MouseButton1Click:Connect(function()
+    Status.FastSlash = not Status.FastSlash
+    updateToggleVisual(ToggleFastSlash, Status.FastSlash)
+    if Status.FastSlash then
+        task.spawn(function()
+            local events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
+            local wepEvent = events:WaitForChild("WeaponEvent")
+            local ninEvent = events:WaitForChild("NinjutsuEvent")
+            while Status.FastSlash do
+                wepEvent:FireServer("Swing")
+                ninEvent:FireServer("Train")
+                task.wait(0.01)
+            end
+        end)
+    end
+end)
+
+-- 3. WalkSpeed x2
+ToggleSpeed.MouseButton1Click:Connect(function()
+    Status.Speed = not Status.Speed
+    updateToggleVisual(ToggleSpeed, Status.Speed)
+    if Status.Speed then
+        task.spawn(function()
+            while Status.Speed do
+                if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+                    if Player.Character.Humanoid.WalkSpeed ~= 100 then
+                        Player.Character.Humanoid.WalkSpeed = 100
+                    end
+                end
+                task.wait(0.5)
+            end
+        end)
+    else
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.WalkSpeed = 16
+        end
+    end
+end)
+
+-- 4. x2 Ninjutsu & Soul
+ToggleX2Stat.MouseButton1Click:Connect(function()
+    Status.X2Stat = not Status.X2Stat
+    updateToggleVisual(ToggleX2Stat, Status.X2Stat)
+    if Status.X2Stat then
+        task.spawn(function()
+            local events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
+            local ninEvent = events:WaitForChild("NinjutsuEvent")
+            local soulEvent = events:WaitForChild("SoulEvent")
+            while Status.X2Stat do
+                ninEvent:FireServer("Train")
+                soulEvent:FireServer("Collect")
+                task.wait(0.05)
+            end
+        end)
+    end
+end)
+
+-- 5. Create Safezone
+ToggleSafezone.MouseButton1Click:Connect(function()
+    Status.Safezone = not Status.Safezone
+    updateToggleVisual(ToggleSafezone, Status.Safezone)
+    if Status.Safezone then
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            lastPosition = Player.Character.HumanoidRootPart.CFrame
+        end
+        if not safePlatform or not safePlatform.Parent then
+            safePlatform = Instance.new("Part")
+            safePlatform.Size = Vector3.new(50, 1, 50)
+            safePlatform.Position = safePosition
+            safePlatform.Anchored = true
+            safePlatform.Material = Enum.Material.Glass
+            safePlatform.Transparency = 0.5
+            safePlatform.Parent = workspace
+        end
+        task.spawn(function()
+            while Status.Safezone do
+                if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                    if (Player.Character.HumanoidRootPart.Position - safePosition).Magnitude > 30 then
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.new(safePosition + Vector3.new(0, 3, 0))
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    else
+        if safePlatform then 
+            safePlatform:Destroy() 
+            safePlatform = nil
+        end
+        if lastPosition and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = lastPosition
+        end
+    end
+end)
+
+-- 6. Infinite Jumps
+UserInputService.JumpRequest:Connect(function()
+    if Status.InfJump then
+        if Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
+            Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+ToggleInfJump.MouseButton1Click:Connect(function()
+    Status.InfJump = not Status.InfJump
+    updateToggleVisual(ToggleInfJump, Status.InfJump)
+end)
